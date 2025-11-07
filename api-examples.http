@@ -1,0 +1,99 @@
+###
+# AdonisJS Task API - Example Requests
+# You can use REST Client extension in VS Code to run these
+# OR use curl commands in terminal
+###
+
+### Variables
+@baseUrl = http://localhost:3333/api/simple
+@taskId = 1
+
+### Home Page
+GET http://localhost:3333
+
+###
+# SIMPLE API ENDPOINTS (No Authentication Required)
+###
+
+### 1. Get all tasks
+GET {{baseUrl}}/tasks
+Content-Type: application/json
+
+### 2. Get task statistics
+GET {{baseUrl}}/tasks/stats
+Content-Type: application/json
+
+### 3. Create a new task
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "title": "Learn AdonisJS basics",
+  "description": "Complete the official tutorial and build a sample app"
+}
+
+### 4. Create another task
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "title": "Build a REST API",
+  "description": "Create CRUD endpoints for task management"
+}
+
+### 5. Create task without description
+POST {{baseUrl}}/tasks
+Content-Type: application/json
+
+{
+  "title": "Read AdonisJS documentation"
+}
+
+### 6. Get a specific task (change taskId if needed)
+GET {{baseUrl}}/tasks/{{taskId}}
+Content-Type: application/json
+
+### 7. Update a task
+PUT {{baseUrl}}/tasks/{{taskId}}
+Content-Type: application/json
+
+{
+  "title": "Learn AdonisJS - Updated",
+  "description": "Completed the basics, now learning advanced topics",
+  "isCompleted": true
+}
+
+### 8. Toggle task completion
+PATCH {{baseUrl}}/tasks/{{taskId}}/toggle
+Content-Type: application/json
+
+### 9. Delete a task
+DELETE {{baseUrl}}/tasks/{{taskId}}
+Content-Type: application/json
+
+###
+# CURL EXAMPLES (Run in terminal)
+###
+
+# Create a task
+# curl -X POST http://localhost:3333/api/simple/tasks \
+#   -H "Content-Type: application/json" \
+#   -d '{"title": "Learn AdonisJS", "description": "Complete tutorial"}'
+
+# Get all tasks
+# curl http://localhost:3333/api/simple/tasks
+
+# Get stats
+# curl http://localhost:3333/api/simple/tasks/stats
+
+# Update task
+# curl -X PUT http://localhost:3333/api/simple/tasks/1 \
+#   -H "Content-Type: application/json" \
+#   -d '{"title": "Updated", "isCompleted": true}'
+
+# Toggle completion
+# curl -X PATCH http://localhost:3333/api/simple/tasks/1/toggle
+
+# Delete task
+# curl -X DELETE http://localhost:3333/api/simple/tasks/1
+
