@@ -12,7 +12,7 @@ export default class TagsController {
   }
 
   async store({ request, response }: HttpContext) {
-    const data = request.only(['tags'])
+    const data = request.only(['name'])
 
     const tag = await Tag.create(data)
 
@@ -34,7 +34,7 @@ export default class TagsController {
   async update({ params, request, response }: HttpContext) {
     try {
       const tag = await Tag.findOrFail(params.id)
-      const data = request.only(['tags'])
+      const data = request.only(['name'])
 
       tag.merge(data)
       await tag.save()

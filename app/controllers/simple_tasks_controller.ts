@@ -12,7 +12,7 @@ export default class SimpleTasksController {
    * Display a list of all tasks
    */
   async index({ response }: HttpContext) {
-    const tasks = await Task.query().orderBy('created_at', 'desc')
+    const tasks = await Task.query().preload('tags').orderBy('created_at', 'desc')
     return response.json({
       message: 'Tasks retrieved successfully',
       count: tasks.length,
@@ -26,6 +26,7 @@ export default class SimpleTasksController {
    */
   async store({ request, response }: HttpContext) {
     const data = request.only(['title', 'description', 'priority'])
+    const tagIds = request.input('tag_ids', []) // Array of tag IDs
 
     // For demo purposes, use a default user_id (you'd need a user in DB)
     const task = await Task.create({
@@ -33,6 +34,14 @@ export default class SimpleTasksController {
       userId: 1, // Default user - make sure user with ID 1 exists!
       isCompleted: false,
     })
+
+    // Attach tags to the task
+    if (tagIds.length > 0) {
+      await task.related('tags').attach(tagIds)
+    }
+
+    // Load tags for response
+    await task.load('tags')
 
     return response.created({
       message: 'Task created successfully',
@@ -46,7 +55,7 @@ export default class SimpleTasksController {
    */
   async show({ params, response }: HttpContext) {
     try {
-      const task = await Task.findOrFail(params.id)
+      const task = await Task.query().where('id', params.id).preload('tags').firstOrFail()
       return response.json({ task })
     } catch (error) {
       return response.notFound({ error: 'Task not found' })
@@ -61,9 +70,18 @@ export default class SimpleTasksController {
     try {
       const task = await Task.findOrFail(params.id)
       const data = request.only(['title', 'description', 'isCompleted', 'priority'])
+      const tagIds = request.input('tag_ids')
 
       task.merge(data)
       await task.save()
+
+      // Update tags if provided
+      if (tagIds !== undefined) {
+        await task.related('tags').sync(tagIds)
+      }
+
+      // Load tags for response
+      await task.load('tags')
 
       return response.json({
         message: 'Task updated successfully',

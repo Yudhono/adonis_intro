@@ -1,12 +1,19 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, manyToMany } from '@adonisjs/lucid/orm'
+import type { ManyToMany } from '@adonisjs/lucid/types/relations'
+import Task from '#models/task'
 
 export default class Tag extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
 
   @column()
-  declare tags: string
+  declare name: string
+
+  @manyToMany(() => Task, {
+    pivotTable: 'task_tag',
+  })
+  declare tasks: ManyToMany<typeof Task>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
