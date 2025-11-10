@@ -182,8 +182,10 @@
                       <i class="fas fa-clock mr-2"></i>Pending
                     </span>
                   @end
-                  
-                  <i class="fas fa-trash text-red-600 cursor-pointer text-2xl" onclick="deleteTask({{ task.id }})"></i>
+                  <div class="flex flex-row item-center gap-2">
+                    <i class="fas fa-trash text-red-600 cursor-pointer text-2xl" onclick="deleteTask({{ task.id }})"></i>
+                    <input type="checkbox" onclick="toggleComplete({{ task.id }})" {{ task.isCompleted ? 'checked' : '' }} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -306,6 +308,25 @@
             }, 1e3);
           } else {
             showMessage("Error deleting task: " + (result.message || "Unknown error"), "error");
+          }
+        } catch (error) {
+          showMessage("Error: " + error.message, "error");
+        }
+      }
+
+      async function toggleComplete(taskId) {
+        try {
+          const response = await fetch(`/api/simple/tasks/${taskId}/toggle`, {
+            method: "PATCH"
+          });
+          const result = await response.json();
+          if (response.ok) {
+            showMessage("Task status updated! Refreshing...", "success");
+            setTimeout(() => {
+              window.location.reload();
+            }, 1e3);
+          } else {
+            showMessage("Error updating task: " + (result.message || "Unknown error"), "error");
           }
         } catch (error) {
           showMessage("Error: " + error.message, "error");
