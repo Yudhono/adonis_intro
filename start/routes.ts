@@ -12,7 +12,8 @@ const TasksController = () => import('#controllers/tasks_controller')
 const SimpleTasksController = () => import('#controllers/simple_tasks_controller')
 const TagsController = () => import('#controllers/tags_controller')
 
-router.on('/').render('pages/home')
+// Web pages (Edge templates)
+router.get('/', [SimpleTasksController, 'list'])
 
 // Simple Task routes - NO authentication (for learning/testing)
 router

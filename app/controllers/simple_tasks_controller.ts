@@ -145,4 +145,13 @@ export default class SimpleTasksController {
       },
     })
   }
+
+  /**
+   * GET /tasks/list (Web view)
+   * Display tasks in HTML page
+   */
+  async list({ view }: HttpContext) {
+    const tasks = await Task.query().preload('tags').orderBy('created_at', 'desc')
+    return view.render('pages/home', { tasks })
+  }
 }
