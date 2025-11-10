@@ -11,6 +11,9 @@ export default class Task extends BaseModel {
   declare title: string
 
   @column()
+  declare priority: number
+
+  @column()
   declare description: string | null
 
   @column()

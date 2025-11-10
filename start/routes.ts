@@ -10,6 +10,7 @@
 import router from '@adonisjs/core/services/router'
 const TasksController = () => import('#controllers/tasks_controller')
 const SimpleTasksController = () => import('#controllers/simple_tasks_controller')
+const TagsController = () => import('#controllers/tags_controller')
 
 router.on('/').render('pages/home')
 
@@ -23,6 +24,12 @@ router
     router.put('/tasks/:id', [SimpleTasksController, 'update']) // Update a task
     router.delete('/tasks/:id', [SimpleTasksController, 'destroy']) // Delete a task
     router.patch('/tasks/:id/toggle', [SimpleTasksController, 'toggle']) // Toggle completion
+
+    router.get('/tags', [TagsController, 'index']) // List all tags
+    router.post('/tags', [TagsController, 'store']) // Create a tag
+    router.get('/tags/:id', [TagsController, 'show']) // Show a tag
+    router.put('/tags/:id', [TagsController, 'update']) // Update a tag
+    router.delete('/tags/:id', [TagsController, 'destroy']) // Delete a tag
   })
   .prefix('api/simple')
 

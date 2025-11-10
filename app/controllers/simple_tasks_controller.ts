@@ -25,7 +25,7 @@ export default class SimpleTasksController {
    * Create a new task
    */
   async store({ request, response }: HttpContext) {
-    const data = request.only(['title', 'description'])
+    const data = request.only(['title', 'description', 'priority'])
 
     // For demo purposes, use a default user_id (you'd need a user in DB)
     const task = await Task.create({
@@ -60,7 +60,7 @@ export default class SimpleTasksController {
   async update({ params, request, response }: HttpContext) {
     try {
       const task = await Task.findOrFail(params.id)
-      const data = request.only(['title', 'description', 'isCompleted'])
+      const data = request.only(['title', 'description', 'isCompleted', 'priority'])
 
       task.merge(data)
       await task.save()
