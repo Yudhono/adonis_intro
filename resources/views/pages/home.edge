@@ -9,33 +9,48 @@
     <script src="https://cdn.tailwindcss.com">
 
     </script>
+    {{-- Alpine.js --}}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js">
+
+    </script>
     {{-- Font Awesome for Icons --}}
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
+    <style>
+      [x-cloak] {
+        display: none !important;
+      }
+    </style>
   </head>
-  <body class="bg-gray-100 p-8">
+  <body class="bg-gray-100 p-8" x-data="taskApp()">
     <div class="max-w-4xl mx-auto">
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold">
           My Tasks
         </h1>
         <button
-          onclick="toggleForm()"
+          @click="toggleForm()"
           id="toggleBtn"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition"
+          class="text-white px-6 py-2 rounded-lg font-semibold transition"
+          :class="formVisible ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'"
         >
-          <i class="fas fa-plus mr-2"></i>Create New Task
+          <template x-if="!formVisible">
+            <span>              <i class="fas fa-plus mr-2"></i>Create New Task</span>
+          </template>
+          <template x-if="formVisible">
+            <span>              <i class="fas fa-times mr-2"></i>Close Form</span>
+          </template>
         </button>
       </div>
 
       {{-- Create Task Form (Hidden by default) --}}
-      <div id="taskForm" class="bg-white p-6 rounded-lg shadow-lg mb-6 hidden">
+      <div id="taskForm" class="bg-white p-6 rounded-lg shadow-lg mb-6" x-show="formVisible" x-cloak>
         <h2 class="text-xl font-semibold mb-4">
           Create New Task
         </h2>
-        <form action="/api/simple/tasks" method="POST" onsubmit="handleSubmit(event)">
+        <form action="/api/simple/tasks" method="POST" @submit.prevent="handleSubmit">
           <div class="space-y-4">
             {{-- Title --}}
             <div>
@@ -112,7 +127,7 @@
               </button>
               <button
                 type="button"
-                onclick="toggleForm()"
+                @click="toggleForm()"
                 class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-2 rounded-lg font-semibold transition"
               >
                 <i class="fas fa-times mr-2"></i>Cancel
@@ -122,7 +137,12 @@
         </form>
 
         {{-- Success/Error Messages --}}
-        <div id="message" class="mt-4 hidden">
+        <div
+          x-show="message.text"
+          class="mt-4"
+          :class="message.type === 'success' ? 'p-4 bg-green-100 text-green-800 rounded-lg' : 'p-4 bg-red-100 text-red-800 rounded-lg'"
+          x-text="message.text"
+        >
         </div>
       </div>
 
@@ -183,8 +203,8 @@
                     </span>
                   @end
                   <div class="flex flex-row item-center gap-2">
-                    <i class="fas fa-trash text-red-600 cursor-pointer text-2xl" onclick="deleteTask({{ task.id }})"></i>
-                    <input type="checkbox" onclick="toggleComplete({{ task.id }})" {{ task.isCompleted ? 'checked' : '' }} />
+                    <i class="fas fa-trash text-red-600 cursor-pointer text-2xl" @click="deleteTask({{ task.id }})"></i>
+                    <input type="checkbox" @click="toggleComplete({{ task.id }})" {{ task.isCompleted ? 'checked' : '' }} />
                   </div>
                 </div>
               </div>
@@ -233,115 +253,106 @@
       </div>
     </div>
 
-    {{-- JavaScript for form toggle and submission --}}
+    {{-- Alpine.js Component --}}
     <script>
-      function toggleForm() {
-        const form = document.getElementById("taskForm");
-        const btn = document.getElementById("toggleBtn");
-        if (form.classList.contains("hidden")) {
-          form.classList.remove("hidden");
-          btn.innerHTML = '<i class="fas fa-times mr-2"></i> Close Form';
-          btn.classList.remove("bg-blue-600", "hover:bg-blue-700");
-          btn.classList.add("bg-red-600", "hover:bg-red-700");
-        } else {
-          form.classList.add("hidden");
-          btn.innerHTML = '<i class="fas fa-plus mr-2"></i> Create New Task';
-          btn.classList.remove("bg-red-600", "hover:bg-red-700");
-          btn.classList.add("bg-blue-600", "hover:bg-blue-700");
-          // Reset form
-          document.querySelector("form").reset();
-          document.getElementById("message").classList.add("hidden");
-        }
-      }
-
-      async function handleSubmit(event) {
-        event.preventDefault();
-        const form = event.target;
-        const formData = new FormData(form);
-        // Convert tag_ids from comma-separated string to array
-        const tagIdsString = formData.get("tag_ids");
-        const tagIds = tagIdsString ? tagIdsString.split(",").map(id => parseInt(id.trim())).filter(id => !isNaN(id)) : [];
-        // Prepare data
-        const data = {
-          title: formData.get("title"),
-          description: formData.get("description"),
-          priority: parseInt(formData.get("priority")),
-          tag_ids: tagIds
+      function taskApp() {
+        return {
+          formVisible: false,
+          message: {
+            text: "",
+            type: ""
+          },
+          toggleForm() {
+            this.formVisible = !this.formVisible;
+            if (!this.formVisible) {
+              // Reset form
+              this.$el.querySelector("form").reset();
+              this.message = {
+                text: "",
+                type: ""
+              };
+            }
+          },
+          async handleSubmit(event) {
+            const form = event.target;
+            const formData = new FormData(form);
+            // Convert tag_ids from comma-separated string to array
+            const tagIdsString = formData.get("tag_ids");
+            const tagIds = tagIdsString ? tagIdsString.split(",").map(id => parseInt(id.trim())).filter(id => !isNaN(id)) : [];
+            // Prepare data
+            const data = {
+              title: formData.get("title"),
+              description: formData.get("description"),
+              priority: parseInt(formData.get("priority")),
+              tag_ids: tagIds
+            };
+            try {
+              const response = await fetch("/api/simple/tasks", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+              });
+              const result = await response.json();
+              if (response.ok) {
+                this.showMessage("Task created successfully! Refreshing...", "success");
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1e3);
+              } else {
+                this.showMessage("Error creating task: " + (result.message || "Unknown error"), "error");
+              }
+            } catch (error) {
+              this.showMessage("Error: " + error.message, "error");
+            }
+          },
+          async deleteTask(taskId) {
+            if (!confirm("Are you sure you want to delete this task?")) {
+              return;
+            }
+            try {
+              const response = await fetch(`/api/simple/tasks/${taskId}`, {
+                method: "DELETE"
+              });
+              const result = await response.json();
+              if (response.ok) {
+                this.showMessage("Task deleted successfully! Refreshing...", "success");
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1e3);
+              } else {
+                this.showMessage("Error deleting task: " + (result.message || "Unknown error"), "error");
+              }
+            } catch (error) {
+              this.showMessage("Error: " + error.message, "error");
+            }
+          },
+          async toggleComplete(taskId) {
+            try {
+              const response = await fetch(`/api/simple/tasks/${taskId}/toggle`, {
+                method: "PATCH"
+              });
+              const result = await response.json();
+              if (response.ok) {
+                this.showMessage("Task status updated! Refreshing...", "success");
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1e3);
+              } else {
+                this.showMessage("Error updating task: " + (result.message || "Unknown error"), "error");
+              }
+            } catch (error) {
+              this.showMessage("Error: " + error.message, "error");
+            }
+          },
+          showMessage(text, type) {
+            this.message = {
+              text: text,
+              type: type
+            };
+          }
         };
-        try {
-          const response = await fetch("/api/simple/tasks", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-          });
-          const result = await response.json();
-          if (response.ok) {
-            // Show success message
-            showMessage("Task created successfully! Refreshing...", "success");
-            // Reload page after 1 second to show new task
-            setTimeout(() => {
-              window.location.reload();
-            }, 1e3);
-          } else {
-            showMessage("Error creating task: " + (result.message || "Unknown error"), "error");
-          }
-        } catch (error) {
-          showMessage("Error: " + error.message, "error");
-        }
-      }
-
-      async function deleteTask(taskId) {
-        if (!confirm("Are you sure you want to delete this task?")) {
-          return;
-        }
-        try {
-          const response = await fetch(`/api/simple/tasks/${taskId}`, {
-            method: "DELETE"
-          });
-          const result = await response.json();
-          if (response.ok) {
-            showMessage("Task deleted successfully! Refreshing...", "success");
-            setTimeout(() => {
-              window.location.reload();
-            }, 1e3);
-          } else {
-            showMessage("Error deleting task: " + (result.message || "Unknown error"), "error");
-          }
-        } catch (error) {
-          showMessage("Error: " + error.message, "error");
-        }
-      }
-
-      async function toggleComplete(taskId) {
-        try {
-          const response = await fetch(`/api/simple/tasks/${taskId}/toggle`, {
-            method: "PATCH"
-          });
-          const result = await response.json();
-          if (response.ok) {
-            showMessage("Task status updated! Refreshing...", "success");
-            setTimeout(() => {
-              window.location.reload();
-            }, 1e3);
-          } else {
-            showMessage("Error updating task: " + (result.message || "Unknown error"), "error");
-          }
-        } catch (error) {
-          showMessage("Error: " + error.message, "error");
-        }
-      }
-
-      function showMessage(text, type) {
-        const messageDiv = document.getElementById("message");
-        messageDiv.textContent = text;
-        messageDiv.classList.remove("hidden");
-        if (type === "success") {
-          messageDiv.className = "mt-4 p-4 bg-green-100 text-green-800 rounded-lg";
-        } else {
-          messageDiv.className = "mt-4 p-4 bg-red-100 text-red-800 rounded-lg";
-        }
       }
     </script>
   </body>
